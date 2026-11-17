@@ -22,7 +22,7 @@ def create_app(config=None):
         uri = uri.replace("postgres://", "postgresql://", 1)
 
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me"),
+        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-key"),
         SQLALCHEMY_DATABASE_URI=uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         ALERT_THRESHOLD=float(os.environ.get("ALERT_THRESHOLD", "0.8")),
