@@ -4,8 +4,13 @@
 import os
 
 from flask import Flask
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
 
-from .extensions import db, login_manager
+db = SQLAlchemy()
+login_manager = LoginManager()
+csrf = CSRFProtect()
 
 
 def create_app(config=None):
@@ -17,9 +22,10 @@ def create_app(config=None):
         uri = uri.replace("postgres://", "postgresql://", 1)
 
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-key"),
+        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me"),
         SQLALCHEMY_DATABASE_URI=uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        ALERT_THRESHOLD=float(os.environ.get("ALERT_THRESHOLD", "0.8")),
         CURRENCY="₹",
     )
 
@@ -29,6 +35,8 @@ def create_app(config=None):
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
+    login_manager.login_message = "Log in to see your expenses."
+    csrf.init_app(app)
 
     from . import models  # noqa: F401
     from .routes import auth_bp, main_bp
