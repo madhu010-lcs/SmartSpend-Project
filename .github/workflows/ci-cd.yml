@@ -43,11 +43,4 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/smartspend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/smartspend:${{ github.sha }}
 
-        name: Build (and push on main)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/smartspend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/smartspend:${{ github.sha }}
+     
