@@ -38,8 +38,11 @@ def create_app(config=None):
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-
-    with app.app_context():
+    @app.cli.command("init-db")
+    def init_db():
+        """Initialize database tables."""
         db.create_all()
+        print("Database tables created.")
 
     return app
+
