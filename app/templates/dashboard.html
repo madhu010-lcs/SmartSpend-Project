@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SmartSpend{% endblock %}
+{% block content %}
+{% set cur = config.CURRENCY %}
+
+{% for a in s.alerts %}
+  <div class="alert alert-{{ a.level }}" role="alert">{{ a.text }}</div>
+{% endfor %}
+
+<section class="forecast">
+  {% if s.forecast %}
+    <p class="forecast-label">Expected spending in {{ s.forecast.month }}</p>
+    <p class="forecast-value">{{ cur }}{{ "{:,.0f}".format(s.forecast.amount) }}</p>
+    <p class="forecast-note">Method: {{ s.forecast.method }}.</p>
+  {% else %}
+    <p class="forecast-label">Next month's forecast</p>
+    <p class="forecast-value">No data yet</p>
+    <p class="forecast-note">Add an expense and a forecast will appear here.
+      <a href="{{ url_for('main.transactions') }}">Add expense</a></p>
+  {% endif %}
+</section>
+
+<section class="totals">
+  <div><span class="muted">Income, {{ s.month }}</span><strong>{{ cur }}{{ "{:,.0f}".format(s.income) }}</strong></div>
+  <div><span class="muted">Spent, {{ s.month }}</span><strong>{{ cur }}{{ "{:,.0f}".format(s.expense) }}</strong></div>
+  <div><span class="muted">Left</span>
+    <strong class="{{ 'neg' if s.income - s.expense < 0 }}">{{ cur }}{{ "{:,.0f}".format(s.income - s.expense) }}</strong></div>
+</section>
+
+<section class="row g-4 mt-1">
+  <div class="col-lg-7">
+    <h2>Income and spending by month</h2>
+    <div class="chart-box"><canvas id="monthlyChart" aria-label="Monthly income and expenses"></canvas></div>
+  </div>
+  <div class="col-lg-5">
+    <h2>Where this month went</h2>
+    <div class="chart-box"><canvas id="categoryChart" aria-label="Spending by category"></canvas></div>
+  </div>
+</section>
+
+<section class="row g-4 mt-1">
+  <div class="col-lg-6">
+    <h2>Budgets</h2>
+    {% for b in s.budgets %}
+      <div class="budget-row">
+        <div class="d-flex justify-content-between">
+          <span>{{ b.category }}</span>
+          <span class="muted">{{ cur }}{{ "{:,.0f}".format(b.spent) }} of {{ cur }}{{ "{:,.0f}".format(b.limit) }}</span>
+        </div>
+        <div class="bar"><div class="fill {{ b.level }}" style="width: {{ [b.percent, 100]|min }}%"></div></div>
+      </div>
+    {% else %}
+      <p class="muted">No budgets yet. <a href="{{ url_for('main.budgets') }}">Set a limit</a> to get alerts at {{ (config.ALERT_THRESHOLD * 100)|int }}%.</p>
+    {% endfor %}
+  </div>
+  <div class="col-lg-6">
+    <h2>Latest transactions</h2>
+    {% for t in s.recent %}
+      <div class="tx-row">
+        <span>{{ t.category }}<small class="muted"> {{ t.on_date }}</small></span>
+        <span class="{{ 'inc' if t.kind == 'income' else 'exp' }}">{{ '+' if t.kind == 'income' else '-' }}{{ cur }}{{ "{:,.0f}".format(t.amount) }}</span>
+      </div>
+    {% else %}
+      <p class="muted">Nothing recorded yet. <a href="{{ url_for('main.transactions') }}">Add your first transaction</a></p>
+    {% endfor %}
+  </div>
+</section>
+
+<script id="chart-data" type="application/json">{{ chart_data|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}
