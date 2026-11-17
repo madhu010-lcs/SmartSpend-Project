@@ -1,3 +1,4 @@
+
 """SmartSpend application factory."""
 import os
 
@@ -15,7 +16,8 @@ def create_app(config=None):
     app = Flask(__name__)
 
     uri = os.environ.get("DATABASE_URL", "sqlite:///smartspend.db")
-    if uri.startswith("postgres://"):  # Render / Heroku style URL
+
+    if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
 
     app.config.update(
@@ -24,6 +26,7 @@ def create_app(config=None):
         ALERT_THRESHOLD=float(os.environ.get("ALERT_THRESHOLD", "0.8")),
         CURRENCY="\u20b9",
     )
+
     if config:
         app.config.update(config)
 
@@ -33,11 +36,12 @@ def create_app(config=None):
     login_manager.login_message = "Log in to see your expenses."
     csrf.init_app(app)
 
-    from . import models  # noqa: F401  (registers tables and user loader)
+    from . import models  # noqa: F401
     from .routes import auth_bp, main_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+
     @app.cli.command("init-db")
     def init_db():
         """Initialize database tables."""
@@ -45,4 +49,3 @@ def create_app(config=None):
         print("Database tables created.")
 
     return app
-
