@@ -11,8 +11,9 @@ def app():
         "WTF_CSRF_ENABLED": False,
         "SECRET_KEY": "test",
     })
-    yield app
     with app.app_context():
+        db.create_all()
+        yield app
         db.session.remove()
         db.drop_all()
 
