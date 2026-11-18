@@ -20,7 +20,7 @@ jobs:
       - name: Lint
         run: flake8 .
       - name: Test
-        run: pytest -q
+        run: pytest -v --tb=short
 
   docker:
     needs: test
