@@ -1,26 +1,33 @@
+import os
+import tempfile
 import pytest
-from sqlalchemy.pool import StaticPool
 
 from app import create_app, db
 
 
 @pytest.fixture()
 def app():
+    db_fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.close(db_fd)
+
     app = create_app({
         "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "SQLALCHEMY_ENGINE_OPTIONS": {
-            "poolclass": StaticPool,
-            "connect_args": {"check_same_thread": False},
-        },
+        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
         "WTF_CSRF_ENABLED": False,
         "SECRET_KEY": "test",
     })
+
     with app.app_context():
         db.create_all()
         yield app
         db.session.remove()
         db.drop_all()
+
+    try:
+        if os.path.exists(db_path):
+            os.remove(db_path)
+    except OSError:
+        pass
 
 
 @pytest.fixture()
